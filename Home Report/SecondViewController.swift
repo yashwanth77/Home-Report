@@ -1,14 +1,10 @@
-//
-//  SecondViewController.swift
-//  Home Report
-//
-//  Created by Andi Setiyadi on 12/13/15.
-//  Copyright © 2015 PFI. All rights reserved.
-//
 
 import UIKit
+import CoreData
 
 class SecondViewController: UIViewController {
+
+    var managedObjectContext : NSManagedObjectContext!
 
     override func viewDidLoad() {
         super.viewDidLoad()
