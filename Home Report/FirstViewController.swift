@@ -11,11 +11,19 @@ class FirstViewController: UIViewController,UITableViewDelegate,UITableViewDataS
     var managedObjectContext : NSManagedObjectContext!
     var homes : [Home] = [];
     var isForSale: Bool = true
+    var sortDescriptor = [NSSortDescriptor]()
+    var searchPredicate : NSPredicate?
+    var request : NSFetchRequest<NSFetchRequestResult>!
 
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadData()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        request = NSFetchRequest(entityName: "Home")
+        loadData();
     }
 
     @IBAction func segmentedAction(_ sender: UISegmentedControl) {
@@ -27,8 +35,21 @@ class FirstViewController: UIViewController,UITableViewDelegate,UITableViewDataS
     
    
         func loadData() {
-            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Home")
-            request.predicate = NSPredicate(format: "status.isForSale = %@", isForSale as CVarArg)
+            
+            var predicates = [NSPredicate]()
+            let statusPredicate = NSPredicate(format: "status.isForSale = %@", isForSale as CVarArg);
+            predicates.append(statusPredicate)
+            
+            if let additionalPredicate = searchPredicate{
+                predicates.append(additionalPredicate);
+            }
+            
+            let predicate  = NSCompoundPredicate(type: .and, subpredicates: predicates)
+            request.predicate = predicate;
+            
+            if sortDescriptor.count > 0{
+                request.sortDescriptors = sortDescriptor;
+            }
             
             do {
                 homes = try managedObjectContext.fetch(request) as! [Home]
@@ -78,6 +99,38 @@ class FirstViewController: UIViewController,UITableViewDelegate,UITableViewDataS
 
      }
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "segueToFilter"{
+            sortDescriptor = [];
+            searchPredicate = nil;
+            let controller = segue.destination as! FilterTableViewController;
+            controller.delegate = self as FilterTableviewControllerDelegate;
+    }
+    
 
 }
+}
+
+
+extension FirstViewController : FilterTableviewControllerDelegate{
+    func updateHomeList(filterBy: NSPredicate?, sortBy: NSSortDescriptor?) {
+        if let filter = filterBy{
+            searchPredicate = filter;
+        }
+        if let sort = sortBy{
+            sortDescriptor.append(sort);
+        }
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
 

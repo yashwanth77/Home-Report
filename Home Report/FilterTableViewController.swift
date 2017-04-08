@@ -8,8 +8,22 @@
 
 import UIKit
 
-class FilterTableViewController: UITableViewController {
+protocol FilterTableviewControllerDelegate {
+    func updateHomeList(filterBy : NSPredicate?,sortBy : NSSortDescriptor?);
+}
 
+class FilterTableViewController: UITableViewController {
+        
+    @IBOutlet weak var filterBySingleFamilyCell: UITableViewCell!
+    @IBOutlet weak var filterByTownHomeCell: UITableViewCell!
+    @IBOutlet weak var sortByPriceLowtoHigh: UITableViewCell!
+    @IBOutlet weak var sortByLocationCell: UITableViewCell!
+    @IBOutlet weak var sortByHighToLow: UITableViewCell!
+    var delegate : FilterTableviewControllerDelegate!
+    
+    var sortDescriptor : NSSortDescriptor?
+    var searchPredicate : NSPredicate?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -20,6 +34,42 @@ class FilterTableViewController: UITableViewController {
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
     }
 
+    func setSortDescriptor(sortBy : String, isAscending : Bool){
+        sortDescriptor = NSSortDescriptor(key: sortBy, ascending: isAscending)
+        
+    }
+    
+    func setFilterSearchPredicate(filterBy : String){
+        searchPredicate = NSPredicate(format: "category.homeType = %@", filterBy);
+        
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectedCell = tableView.cellForRow(at: indexPath)
+        switch selectedCell {
+        case sortByLocationCell?:
+            setSortDescriptor(sortBy: "location.city", isAscending: true);
+            break
+        case sortByPriceLowtoHigh?:
+            setSortDescriptor(sortBy: "price", isAscending: true)
+            break
+        case sortByHighToLow?:
+            setSortDescriptor(sortBy: "price", isAscending: false)
+            break
+        case filterByTownHomeCell?:
+            setFilterSearchPredicate(filterBy: "Townhome")
+            break
+        case filterBySingleFamilyCell?:
+            setFilterSearchPredicate(filterBy: "Single Family");
+            break
+        default:
+            print("No cell is selcted");
+        }
+        
+        selectedCell?.accessoryType = .checkmark;
+        delegate.updateHomeList(filterBy: searchPredicate, sortBy: sortDescriptor)
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -29,11 +79,17 @@ class FilterTableViewController: UITableViewController {
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 0
+        return 2
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
+        if section == 0{
+            return 3;
+        }
+        else if section == 1{
+            return 2;
+        }
         return 0
     }
 
